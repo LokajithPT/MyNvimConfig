@@ -1,2 +1,3 @@
 # MyNvimConfig
-# MyNvimConfig
+
+yup thas all 
