@@ -5,6 +5,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
     vim.fn.system({
@@ -360,6 +361,13 @@ require("lazy").setup({
     })
 end },
 
+    -- Undotree
+    {
+        "mbbill/undotree",
+        config = function()
+            vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+        end,
+    },
 
     -- DAP
     { "mfussenegger/nvim-dap" },
@@ -641,5 +649,6 @@ vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
+vim.opt.scrolloff = 8 
 
 M.transparency_on() -- Enable transparency on startup
