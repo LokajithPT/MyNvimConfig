@@ -51,7 +51,7 @@ function M.setup()
 
   -- DuoSync
   vim.api.nvim_create_user_command("DuoSync", function()
-    sender.flush = nil 
+    sender.flush()
     vim.notify("Duo sync triggered 🔄", vim.log.levels.INFO)
   end, {})
 
