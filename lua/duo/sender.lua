@@ -19,6 +19,14 @@ function M.flush()
     return
   end
   
+  -- Check server connectivity first
+  local server_online = M.check_server()
+  if not server_online then
+    vim.notify("Server offline - keeping items in queue for later sync 📦", vim.log.levels.WARN)
+    s.stats.failed = (s.stats.failed or 0) + state.queue_size()
+    return
+  end
+  
   -- Process each item in queue
   local queue_copy = {}
   for i, item in ipairs(s.queue) do
@@ -39,7 +47,7 @@ function M.flush()
   
   -- Clear queue on success, keep failed items
   if failed_count == 0 then
-    -- Clear tracker sessions for successfully synced files
+    -- Update tracker sessions for successfully synced files (accumulate, don't clear)
     local synced_files = {}
     for _, item in ipairs(queue_copy) do
       if item.filename and not synced_files[item.filename] then
@@ -92,9 +100,24 @@ function M.send_item(item)
     end
     return true
   else
-    vim.notify("HTTP " .. http_code .. ": " .. response, vim.log.levels.ERROR)
+    -- Don't spam with errors if server is offline
     return false
   end
+end
+
+function M.check_server()
+  -- Simple ping to check if server is online
+  local ping_cmd = {
+    "curl",
+    "-s", "-w", "%{http_code}",
+    "-m", "5", -- 5 second timeout
+    "http://localhost:8080/ping"
+  }
+  
+  local result = vim.fn.system(ping_cmd)
+  local http_code = result:sub(-3)
+  
+  return http_code == "200"
 end
 
 return M
