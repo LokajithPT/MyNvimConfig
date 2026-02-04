@@ -1,5 +1,6 @@
 local M = {}
 local state = require("duo.state")
+local tracker = require("duo.tracker")
 
 function M.setup()
   -- config stuff
@@ -38,6 +39,15 @@ function M.flush()
   
   -- Clear queue on success, keep failed items
   if failed_count == 0 then
+    -- Clear tracker sessions for successfully synced files
+    local synced_files = {}
+    for _, item in ipairs(queue_copy) do
+      if item.filename and not synced_files[item.filename] then
+        tracker.clear_session(item.filename)
+        synced_files[item.filename] = true
+      end
+    end
+    
     state.clear_queue()
     state.mark_synced()
     vim.notify("Synced " .. success_count .. " items ✅", vim.log.levels.INFO)
@@ -52,10 +62,10 @@ end
 
 function M.send_item(item)
   local payload = {
-    filename = item.file or "unknown",
-    typed = "typed " .. (item.count or 0) .. " chars",
-    pasted = "",
-    real = item.type or "typed"
+    filename = item.filename or item.file or "unknown",
+    typed = item.typed or "",
+    pasted = item.pasted or "",
+    real = item.real or ""
   }
   
   local json_payload = vim.json.encode(payload)
@@ -76,6 +86,10 @@ function M.send_item(item)
   local response = result:sub(1, -4)
   
   if http_code == "200" then
+    -- Clear tracker session for this file on successful sync
+    if item.filename then
+      tracker.clear_session(item.filename)
+    end
     return true
   else
     vim.notify("HTTP " .. http_code .. ": " .. response, vim.log.levels.ERROR)
