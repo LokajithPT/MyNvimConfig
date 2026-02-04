@@ -1,5 +1,4 @@
 local M = {}
-
 local state  = require("duo.state")
 local sender = require("duo.sender")
 
@@ -30,7 +29,7 @@ function M.setup()
   -- DuoStart
   vim.api.nvim_create_user_command("DuoStart", function()
     state.start()
-    vim.notify("Duo started 🚀", vim.log.levels.INFO)
+    vim.notify("Duo started ", vim.log.levels.INFO)
 
     if state.auto_sync and state.auto_minutes then
       start_timer(state.auto_minutes)
@@ -52,7 +51,7 @@ function M.setup()
 
   -- DuoSync
   vim.api.nvim_create_user_command("DuoSync", function()
-    sender.flush()
+    sender.flush = nil 
     vim.notify("Duo sync triggered 🔄", vim.log.levels.INFO)
   end, {})
 

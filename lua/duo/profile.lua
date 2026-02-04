@@ -1,36 +1,33 @@
+-- lua/duo/profile.lua
 local M = {}
-
-local state  = require("duo.state")
-local sender = require("duo.sender")
+local state = require("duo.state")
 
 function M.open()
+  local s = state.get()
+
+  -- HARD GUARDS (important)
+  local queue = s.queue or {}
+  local stats = s.stats or {}
+
   local lines = {
-    " Duo.nvim Profile ",
+    " Duo Profile",
     "────────────────────",
+    "Status       : " .. (s.running and "Running" or "Stopped"),
+    "Server       : " .. (s.server_online and "Online" or "Offline"),
     "",
-    " Running      : " .. (state.running and "YES" or "NO"),
-    " Auto Sync    : " .. (state.auto_sync and "YES" or "NO"),
-    " Interval     : " .. (state.auto_minutes and (state.auto_minutes .. " min") or "N/A"),
-    " Queue Size   : " .. tostring(#sender.queue),
+    "Queue size   : " .. tostring(#queue),
+    "Last sync    : " .. (s.last_sync or "never"),
     "",
-    " Server       : checking...",
+    "Stats",
+    "Sent         : " .. tostring(stats.sent or 0),
+    "Failed       : " .. tostring(stats.failed or 0),
   }
 
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-  local width  = 34
-  local height = #lines
-
-  vim.api.nvim_open_win(buf, true, {
-    relative = "editor",
-    row = 5,
-    col = 5,
-    width = width,
-    height = height,
-    style = "minimal",
-    border = "rounded",
-  })
+  vim.api.nvim_echo(
+    vim.tbl_map(function(l) return { l, "Normal" } end, lines),
+    false,
+    {}
+  )
 end
 
 return M
